@@ -5,13 +5,19 @@ import { usersMessages } from "./users.messages";
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { hashedPasswordHelper } from "@/helpers/utils";
-
+import { CreateAuthDto } from "@/auth/dto/create-auth.dto";
+import { v4 as uuidv4 } from 'uuid';
+import dayjs from "dayjs";
+import { MailerService } from "@nestjs-modules/mailer";
 
 @Injectable()
 export class UsersService {
     private readonly saltRounds = 10;
 
-    constructor(private readonly prisma:PrismaService) {}
+    constructor(
+        private readonly prisma:PrismaService,
+        private readonly mailerService: MailerService
+    ) {}
 
     async getAll(page: number, pageSize: number) {
         const skip = (page - 1) * pageSize
@@ -61,6 +67,7 @@ export class UsersService {
         return await this.prisma.users.findUnique({ where: {email} });
     }
 
+    // admin create
     async create(registerData: CreateUserDto) {
         const {name, email, password} = registerData;
 
@@ -96,6 +103,44 @@ export class UsersService {
         await this.prisma.users.delete({ where: { id } });
 
         return { message: usersMessages.SUCCESS.DELETED };
+    }
+
+    // user create
+    async handleRegister(registerDto: CreateAuthDto) {
+        const {name, email, password} = registerDto;
+
+        // Check existing email in database
+        await this.checkExistingEmail(email);
+
+        const hashedPassword = await hashedPasswordHelper(password, this.saltRounds);
+        const code_id_uuid = uuidv4();
+        const user = await this.prisma.users.create({
+            data: {
+                name,
+                email,
+                password: hashedPassword,
+                is_active: false,
+                code_id: code_id_uuid,
+                code_expired: dayjs().add(5, 'minutes').toDate()
+                //code_expired: dayjs().add(30, 'seconds').toDate(),
+            }
+        });
+        // send a verification email
+        this.mailerService.sendMail({
+            to: user.email,
+            subject: 'Activate your account for motel management application',
+            template: "register.hbs",
+            context: {
+            name: user.name,
+            activationCode: code_id_uuid            
+                }
+        })
+
+        return {
+            id: user.id
+        };
+
+        // TODO: send email verification     
     }
 
     /**

@@ -6,11 +6,17 @@ import { LocalAuthGuard } from './passport/local-auth.guard';
 import { Public } from '@/decorators/customize';
 import { authMessages } from './auth.messages';
 import { usersMessages } from '@/modules/users/users.messages';
+import { CreateUserDto } from '@/modules/users/dto/create-user.dto';
+import { UsersService } from '@/modules/users/users.service';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Post('login')
   @Public()
@@ -21,6 +27,17 @@ export class AuthController {
   handleLogin(@Request() req) {
     return this.authService.login(req.user);
   }
+
+  @Post('register')
+  @HttpCode(201)
+  @Public()
+  @ApiResponse({ status: 201, description: usersMessages.SUCCESS.CREATED })
+  @ApiResponse({ status: 400, description: usersMessages.ERROR.ALREADY_EXISTS })
+  @ApiResponse({ status: 500, description: "Internal server error" })
+  async create(@Body() createUserDto: CreateUserDto) {
+      return this.usersService.create(createUserDto);
+  }
+
   
   //@UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

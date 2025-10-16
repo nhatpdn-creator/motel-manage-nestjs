@@ -8,6 +8,8 @@ import { authMessages } from './auth.messages';
 import { usersMessages } from '@/modules/users/users.messages';
 import { CreateUserDto } from '@/modules/users/dto/create-user.dto';
 import { UsersService } from '@/modules/users/users.service';
+import { CreateAuthDto } from './dto/create-auth.dto';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -16,13 +18,17 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
+  constructor(
+    private readonly authService: AuthService,
+    private readonly mailerService: MailerService,
   ) {}
 
   @Post('login')
   @Public()
   @UseGuards(LocalAuthGuard)
-  @ApiResponse({ status: 200, description: authMessages.SUCCESS.LOGIN})
-  @ApiResponse({ status: 401, description: authMessages.ERROR.UNAUTHORIZED})
+  @ApiResponse({ status: 200, description: authMessages.SUCCESS.LOGIN })
+  @ApiResponse({ status: 400, description: authMessages.ERROR.UNACTIVATED_STATUS })
+  @ApiResponse({ status: 401, description: authMessages.ERROR.UNAUTHORIZED })
   @ApiBody({ type: LoginDto })
   handleLogin(@Request() req) {
     return this.authService.login(req.user);
@@ -48,7 +54,29 @@ export class AuthController {
     return req.user;
   }
 
+  @Post('register')
+  @Public()
+  register(@Body() registerDto: CreateAuthDto) {
+    return this.authService.handleRegister(registerDto);
+  }
+
   //TODO: implement account verification
+  @Get('mail')
+  @Public()
+  testMail() {
+    this.mailerService
+    .sendMail({
+      to: 'dskmt17@gmail.com',
+      subject: 'Testing Nest MailerModule',
+      text: 'Welcome!',
+      template: "register.hbs",
+      context: {
+        name: "pdnn",
+        activationCode: 123456
+      }
+    })
+    return "OK";
+  }
 
   //TODO: change password
   

@@ -1,6 +1,7 @@
 ## Description
 
 Nest.js application that allows users to manage their renting apartments and rooms.
+Node.js v22.18.0
 ## Project setup
 
 ```bash

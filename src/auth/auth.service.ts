@@ -6,6 +6,7 @@ import { comparePasswordHelper } from "@/helpers/utils";
 import { usersMessages } from "@/modules/users/users.messages";
 import { JwtService } from "@nestjs/jwt";
 import { authMessages } from "./auth.messages";
+import { CreateAuthDto } from "./dto/create-auth.dto";
 
 @Injectable()
 export class AuthService {
@@ -34,6 +35,10 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload)
     };
+  }
+
+  handleRegister = async(registerDto: CreateAuthDto) => {
+    return await this.usersService.handleRegister(registerDto);
   }
   
   //TODO: Send activation code to activate a new account

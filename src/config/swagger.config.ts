@@ -2,7 +2,7 @@ import { DocumentBuilder } from "@nestjs/swagger";
 
 export const swaggerConfig = new DocumentBuilder()
     .setTitle('Motel management API')
-    .setDescription('API for managing resources related to motel management system')
+    .setDescription('API for managing resources related to the motel management system')
     .setVersion('1.0')
     .addTag('motel-management')
     .addServer('/api/v1')

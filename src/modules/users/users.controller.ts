@@ -4,6 +4,7 @@ import { ApiBody, ApiQuery, ApiResponse, ApiTags, ApiParam } from '@nestjs/swagg
 import { CreateUserDto } from './dto/create-user.dto';
 import { usersMessages } from './users.messages';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Public } from '@/decorators/customize';
 
 
 @ApiTags('users')
